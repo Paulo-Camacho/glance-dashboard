@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10130f">
+    <title>Glance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <main class="dashboard">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>GLANCE</span>
+        </div>
+        <div class="clock-wrap">
+          <time id="clock">--:--</time>
+          <span id="date">Loading date</span>
+        </div>
+      </header>
+
+      <section class="weather hero-card" aria-labelledby="weather-heading">
+        <div class="weather-now">
+          <div class="eyebrow-row">
+            <span class="eyebrow" id="weather-heading">Right now</span>
+            <span class="location" id="location">Loading weather…</span>
+          </div>
+          <div class="weather-primary">
+            <div class="weather-icon icon-large" id="weather-icon" aria-hidden="true">·</div>
+            <div>
+              <div class="temperature" id="temperature">--°</div>
+              <div class="condition" id="condition">Getting current conditions</div>
+            </div>
+          </div>
+          <div class="weather-facts">
+            <span>Feels like <strong id="feels-like">--°</strong></span>
+            <span>Humidity <strong id="humidity">--%</strong></span>
+            <span>Wind <strong id="wind">--</strong></span>
+          </div>
+        </div>
+        <div class="forecast" id="forecast" aria-label="Five day forecast">
+          <div class="forecast-placeholder"></div><div class="forecast-placeholder"></div>
+          <div class="forecast-placeholder"></div><div class="forecast-placeholder"></div>
+          <div class="forecast-placeholder"></div>
+        </div>
+      </section>
+
+      <section class="schedule card" aria-labelledby="schedule-heading">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">The week ahead</span>
+            <h1 id="schedule-heading">Upcoming</h1>
+          </div>
+          <div class="status-dot" id="calendar-status" title="Calendar status"></div>
+        </div>
+        <div class="events" id="events">
+          <div class="loading-row"><span></span><div></div></div>
+          <div class="loading-row"><span></span><div></div></div>
+          <div class="loading-row"><span></span><div></div></div>
+        </div>
+      </section>
+
+      <aside class="today card" aria-labelledby="today-heading">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">At a glance</span>
+            <h2 id="today-heading">Today</h2>
+          </div>
+        </div>
+        <div class="today-body">
+          <div class="day-number" id="day-number">--</div>
+          <div class="day-copy">
+            <strong id="day-name">—</strong>
+            <span id="month-name">—</span>
+          </div>
+        </div>
+        <div class="next-up" id="next-up">
+          <span class="eyebrow">Next up</span>
+          <p>Calendar is loading…</p>
+        </div>
+      </aside>
+
+      <footer>
+        <span id="last-updated">Waiting for first update</span>
+        <span>Weather by Open-Meteo</span>
+      </footer>
+    </main>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+</html>

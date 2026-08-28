@@ -1,0 +1,15 @@
+[Unit]
+Description=Glance ambient dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/dashboard
+Environment="DASHBOARD_LOCATION=San Francisco, CA"
+ExecStart=%h/projects/dashboard/.venv/bin/python app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
