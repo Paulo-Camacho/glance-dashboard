@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#10130f">
     <title>Glance</title>
+    <script>
+      try {
+        var savedTheme = localStorage.getItem("glance-theme");
+        if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+      } catch (error) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
@@ -22,6 +28,12 @@
         <div class="clock-wrap">
           <time id="clock">--:--</time>
           <span id="date">Loading date</span>
+        </div>
+        <div class="theme-switcher">
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Change theme" aria-haspopup="true" aria-expanded="false">
+            <span class="theme-toggle-dot" aria-hidden="true"></span>
+          </button>
+          <div class="theme-menu" id="theme-menu" hidden></div>
         </div>
       </header>
 

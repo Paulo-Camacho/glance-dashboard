@@ -1,4 +1,49 @@
 const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+const THEMES = [
+  { id: "forest", name: "Forest", accent: "#d5f18b" },
+  { id: "dracula", name: "Dracula", accent: "#ff79c6" },
+  { id: "nord", name: "Nord", accent: "#88c0d0" },
+  { id: "solarized", name: "Solarized Dark", accent: "#2aa198" },
+  { id: "monokai", name: "Monokai", accent: "#a6e22e" },
+  { id: "gruvbox", name: "Gruvbox", accent: "#b8bb26" },
+  { id: "onedark", name: "One Dark", accent: "#61afef" },
+  { id: "tokyo-night", name: "Tokyo Night", accent: "#7aa2f7" },
+];
+
+function applyTheme(id) {
+  document.documentElement.dataset.theme = id;
+  try { localStorage.setItem("glance-theme", id); } catch (error) {}
+  $$(".theme-option").forEach((button) => button.classList.toggle("active", button.dataset.themeId === id));
+}
+
+function initThemeSwitcher() {
+  const current = document.documentElement.dataset.theme || "forest";
+  const toggle = $("#theme-toggle");
+  const menu = $("#theme-menu");
+  menu.innerHTML = THEMES.map((theme) => `
+    <button class="theme-option${theme.id === current ? " active" : ""}" data-theme-id="${theme.id}" type="button">
+      <span class="theme-swatch" style="background:${theme.accent}"></span>${theme.name}
+    </button>`).join("");
+  menu.addEventListener("click", (event) => {
+    const button = event.target.closest(".theme-option");
+    if (!button) return;
+    applyTheme(button.dataset.themeId);
+    menu.hidden = true;
+    toggle.setAttribute("aria-expanded", "false");
+  });
+  toggle.addEventListener("click", () => {
+    menu.hidden = !menu.hidden;
+    toggle.setAttribute("aria-expanded", String(!menu.hidden));
+  });
+  document.addEventListener("click", (event) => {
+    if (!menu.hidden && !event.target.closest(".theme-switcher")) {
+      menu.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
+}
 
 const weatherCodes = {
   0: ["Clear", "☀"], 1: ["Mostly clear", "☀"], 2: ["Partly cloudy", "◒"],
@@ -146,6 +191,7 @@ async function refresh() {
   $("#last-updated").textContent = `Updated ${new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(new Date())}`;
 }
 
+initThemeSwitcher();
 tick();
 refresh();
 setInterval(tick, 1000);
