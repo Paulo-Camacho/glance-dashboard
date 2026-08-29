@@ -19,6 +19,22 @@ function condition(code, isDay = true) {
   return value;
 }
 
+function uvLabel(value) {
+  if (value >= 11) return "Extreme";
+  if (value >= 8) return "Very high";
+  if (value >= 6) return "High";
+  if (value >= 3) return "Moderate";
+  return "Low";
+}
+
+function formatLocalTime(isoLocal) {
+  const [hourStr, minuteStr] = isoLocal.slice(11, 16).split(":");
+  const hour = Number(hourStr);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minuteStr} ${suffix}`;
+}
+
 function tick() {
   const now = new Date();
   $("#clock").textContent = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(now);
@@ -45,6 +61,8 @@ function renderWeather(data) {
   $("#feels-like").textContent = `${Math.round(current.feelsLike)}°`;
   $("#humidity").textContent = `${current.humidity}%`;
   $("#wind").textContent = `${Math.round(current.wind)} ${data.windUnit}`;
+  $("#uv-index").textContent = `${Math.round(current.uvIndex)} · ${uvLabel(current.uvIndex)}`;
+  $("#sunset").textContent = formatLocalTime(current.sunset);
   $("#forecast").innerHTML = data.days.slice(1, 6).map((day) => {
     const [, dayIcon] = condition(day.code);
     const name = new Intl.DateTimeFormat([], { weekday: "short", timeZone: "UTC" }).format(new Date(`${day.date}T12:00:00Z`));

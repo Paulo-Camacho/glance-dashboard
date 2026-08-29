@@ -82,6 +82,8 @@ def load_weather() -> dict[str, Any]:
                     "weather_code",
                     "is_day",
                     "wind_speed_10m",
+                    "cloud_cover",
+                    "uv_index",
                 ]
             ),
             "daily": ",".join(
@@ -92,6 +94,7 @@ def load_weather() -> dict[str, Any]:
                     "precipitation_probability_max",
                     "sunrise",
                     "sunset",
+                    "uv_index_max",
                 ]
             ),
             "forecast_days": 6,
@@ -123,6 +126,9 @@ def load_weather() -> dict[str, Any]:
             "wind": forecast["current"]["wind_speed_10m"],
             "code": forecast["current"]["weather_code"],
             "isDay": bool(forecast["current"]["is_day"]),
+            "cloudCover": forecast["current"]["cloud_cover"],
+            "uvIndex": forecast["current"]["uv_index"],
+            "sunset": daily["sunset"][0],
         },
         "days": days,
         "updatedAt": datetime.now(timezone.utc).isoformat(),
