@@ -72,6 +72,23 @@ function renderWeather(data) {
       <span class="rain">${day.precipitation ?? 0}% rain</span>
     </div>`;
   }).join("");
+  renderOutlook(data.outlook);
+}
+
+function renderOutlook(outlook) {
+  const el = $("#outlook");
+  if (!outlook || !outlook.hours.length) { el.hidden = true; return; }
+  el.hidden = false;
+  const bucketLabel = { clear: "clear", partly: "partly cloudy", cloudy: "cloudy" };
+  let summary;
+  if (outlook.direction === "clearing") summary = `Clearing up by ${formatLocalTime(outlook.changeAt)}`;
+  else if (outlook.direction === "clouding") summary = `Clouding up by ${formatLocalTime(outlook.changeAt)}`;
+  else summary = `Staying ${bucketLabel[outlook.bucket]} the rest of the day`;
+  $("#outlook-summary").textContent = summary;
+  $("#outlook-hours").innerHTML = outlook.hours.map((hour) => {
+    const [, icon] = condition(hour.code, true);
+    return `<div class="outlook-hour"><span class="outlook-icon">${icon}</span><span>${formatLocalTime(hour.time).replace(":00 ", " ")}</span></div>`;
+  }).join("");
 }
 
 function dateKey(value) { return value.slice(0, 10); }

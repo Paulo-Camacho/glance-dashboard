@@ -62,6 +62,49 @@ def geocode(location: str) -> dict[str, Any]:
     return cached(f"geocode:{location}", 24 * 60 * 60, load)
 
 
+def sky_bucket(cloud_cover: float) -> str:
+    if cloud_cover <= 25:
+        return "clear"
+    if cloud_cover <= 60:
+        return "partly"
+    return "cloudy"
+
+
+def build_outlook(
+    hourly: dict[str, Any], now: str, today: str, sunset: str, current_cloud: float
+) -> dict[str, Any] | None:
+    remaining = [
+        (time, cloud, code)
+        for time, cloud, code in zip(hourly["time"], hourly["cloud_cover"], hourly["weather_code"])
+        if time.startswith(today) and now < time <= sunset
+    ]
+    if not remaining:
+        return None
+
+    rank = {"clear": 0, "partly": 1, "cloudy": 2}
+    current_bucket = sky_bucket(current_cloud)
+    direction, change_at = "steady", None
+    for time, cloud, _ in remaining:
+        bucket = sky_bucket(cloud)
+        if rank[bucket] != rank[current_bucket]:
+            direction = "clearing" if rank[bucket] < rank[current_bucket] else "clouding"
+            change_at = time
+            break
+
+    slots = min(6, len(remaining))
+    indices = (
+        [0]
+        if slots == 1
+        else sorted({round(i * (len(remaining) - 1) / (slots - 1)) for i in range(slots)})
+    )
+    return {
+        "bucket": current_bucket,
+        "direction": direction,
+        "changeAt": change_at,
+        "hours": [{"time": remaining[i][0], "code": remaining[i][2]} for i in indices],
+    }
+
+
 def load_weather() -> dict[str, Any]:
     place = geocode(configured_location())
     units = os.environ.get("DASHBOARD_UNITS", "fahrenheit").lower()
@@ -97,11 +140,13 @@ def load_weather() -> dict[str, Any]:
                     "uv_index_max",
                 ]
             ),
+            "hourly": "cloud_cover,weather_code",
             "forecast_days": 6,
         }
     )
     forecast = fetch_json(f"https://api.open-meteo.com/v1/forecast?{params}")
     daily = forecast["daily"]
+    hourly = forecast["hourly"]
     days = []
     for index, date in enumerate(daily["time"]):
         days.append(
@@ -130,6 +175,13 @@ def load_weather() -> dict[str, Any]:
             "uvIndex": forecast["current"]["uv_index"],
             "sunset": daily["sunset"][0],
         },
+        "outlook": build_outlook(
+            hourly,
+            forecast["current"]["time"],
+            daily["time"][0],
+            daily["sunset"][0],
+            forecast["current"]["cloud_cover"],
+        ),
         "days": days,
         "updatedAt": datetime.now(timezone.utc).isoformat(),
     }

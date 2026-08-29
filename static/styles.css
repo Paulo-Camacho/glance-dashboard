@@ -67,6 +67,12 @@ body::before {
 .weather-facts { display: flex; flex-wrap: wrap; gap: 12px 26px; color: var(--muted); font-size: 13px; }
 .weather-facts strong { color: var(--text); font-weight: 600; margin-left: 3px; }
 
+.outlook { grid-column: 1 / -1; margin-top: 6px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.outlook-summary { color: var(--text); font: 600 14px "Manrope", sans-serif; }
+.outlook-hours { display: flex; gap: 24px; overflow-x: auto; }
+.outlook-hour { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 40px; color: var(--muted); font-size: 11px; }
+.outlook-hour .outlook-icon { font-size: 20px; color: var(--sun); }
+
 .forecast { border-left: 1px solid var(--line); padding-left: 42px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: stretch; }
 .forecast-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-width: 0; }
 .forecast-day + .forecast-day { border-left: 1px solid var(--line); }
