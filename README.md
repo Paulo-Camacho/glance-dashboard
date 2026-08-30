@@ -36,6 +36,22 @@ Open <http://127.0.0.1:8080>. Weather works without an API key. Set `DASHBOARD_U
 
 The browser will ask for consent once. The resulting refresh token is stored in `data/google-token.json`, which is excluded from source control. Restart the dashboard and events will appear.
 
+### Showing more than your main calendar
+
+By default only your primary calendar is read. To include everything you subscribe to — Canvas or other iCal feeds, shared and team calendars:
+
+```bash
+GOOGLE_CALENDAR_ID=all .venv/bin/python app.py
+```
+
+`all` follows the calendars you have enabled in Google Calendar; anything you have unchecked there is skipped. To pick specific ones instead, pass a comma-separated list of calendar IDs (Google Calendar → hover a calendar → **Settings** → **Integrate calendar** → **Calendar ID**):
+
+```bash
+GOOGLE_CALENDAR_ID="primary,abc123@group.calendar.google.com" .venv/bin/python app.py
+```
+
+Events from all selected calendars are merged and sorted together, and each row shows which calendar it came from. A calendar that can't be read is skipped rather than breaking the card.
+
 ## Start automatically
 
 Edit `dashboard.service` if the project is not at `~/projects/dashboard` or you want a different city. Then install it as a user service:

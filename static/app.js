@@ -189,7 +189,8 @@ function renderEvents(data) {
     const href = safeUrl(event.link);
     const tag = href ? "a" : "div";
     const link = href ? ` href="${escapeHtml(href)}" target="_blank" rel="noreferrer"` : "";
-    return `<${tag} class="event"${link}><div class="event-time"><strong>${day}</strong>${when.time}</div><span class="event-bar"></span><div class="event-copy"><div class="event-title">${escapeHtml(event.title)}</div>${event.location ? `<div class="event-meta">${escapeHtml(event.location)}</div>` : ""}</div></${tag}>`;
+    const meta = [event.calendar, event.location].filter(Boolean).join(" · ");
+    return `<${tag} class="event"${link}><div class="event-time"><strong>${day}</strong>${when.time}</div><span class="event-bar"></span><div class="event-copy"><div class="event-title">${escapeHtml(event.title)}</div>${meta ? `<div class="event-meta">${escapeHtml(meta)}</div>` : ""}</div></${tag}>`;
   }).join("");
   const first = data.events[0], when = eventTime(first);
   $("#next-up").innerHTML = `<span class="eyebrow">Next up</span><p>${escapeHtml(first.title)}<small>${first.allDay ? "All day" : `${when.day} · ${when.time}`}</small></p>`;

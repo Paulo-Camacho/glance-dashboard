@@ -205,6 +205,26 @@ def calendar_credentials():
     return credentials if credentials.valid else None
 
 
+def selected_calendar_ids(service) -> list[str]:
+    """Calendar ids to pull from: "all" means every calendar you subscribe to."""
+    configured = os.environ.get("GOOGLE_CALENDAR_ID", "primary").strip()
+    if configured.lower() in {"all", "*"}:
+        entries = service.calendarList().list().execute().get("items", [])
+        return [entry["id"] for entry in entries if entry.get("selected", True)]
+    return [value.strip() for value in configured.split(",") if value.strip()]
+
+
+def event_start_key(event: dict[str, Any]) -> datetime:
+    """Sort key that puts all-day events at the start of their own day."""
+    start = event["start"]
+    if len(start) == 10:  # date only
+        return datetime.fromisoformat(start).replace(tzinfo=timezone.utc)
+    parsed = datetime.fromisoformat(start.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 def load_calendar_events() -> list[dict[str, Any]]:
     credentials = calendar_credentials()
     if not credentials:
@@ -214,21 +234,35 @@ def load_calendar_events() -> list[dict[str, Any]]:
 
     now = datetime.now(timezone.utc)
     horizon = now + timedelta(days=int(os.environ.get("CALENDAR_DAYS", "7")))
+    max_events = int(os.environ.get("CALENDAR_MAX_EVENTS", "12"))
     service = build("calendar", "v3", credentials=credentials, cache_discovery=False)
-    result = (
-        service.events()
-        .list(
-            calendarId=os.environ.get("GOOGLE_CALENDAR_ID", "primary"),
-            timeMin=now.isoformat(),
-            timeMax=horizon.isoformat(),
-            maxResults=int(os.environ.get("CALENDAR_MAX_EVENTS", "12")),
-            singleEvents=True,
-            orderBy="startTime",
-        )
-        .execute()
-    )
+
+    items = []
+    for calendar_id in selected_calendar_ids(service):
+        try:
+            response = (
+                service.events()
+                .list(
+                    calendarId=calendar_id,
+                    timeMin=now.isoformat(),
+                    timeMax=horizon.isoformat(),
+                    maxResults=max_events,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
+        except Exception:
+            # One unreadable calendar shouldn't blank out the whole card.
+            app.logger.exception("Skipping calendar %s", calendar_id)
+            continue
+        source = response.get("summary")
+        for item in response.get("items", []):
+            item["_source"] = source
+            items.append(item)
+
     events = []
-    for event in result.get("items", []):
+    for event in items:
         if event.get("status") == "cancelled":
             continue
         start = event.get("start", {})
@@ -242,9 +276,13 @@ def load_calendar_events() -> list[dict[str, Any]]:
                 "allDay": "date" in start,
                 "location": event.get("location"),
                 "link": event.get("htmlLink"),
+                "calendar": event.get("_source"),
             }
         )
-    return events
+
+    # Each calendar comes back sorted on its own, so merge before trimming.
+    events.sort(key=event_start_key)
+    return events[:max_events]
 
 
 def authorize_calendar() -> None:
