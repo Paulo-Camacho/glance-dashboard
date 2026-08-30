@@ -26,21 +26,26 @@ function initThemeSwitcher() {
     <button class="theme-option${theme.id === current ? " active" : ""}" data-theme-id="${theme.id}" type="button">
       <span class="theme-swatch" style="background:${theme.accent}"></span>${theme.name}
     </button>`).join("");
+  const setOpen = (open) => {
+    menu.hidden = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+
   menu.addEventListener("click", (event) => {
     const button = event.target.closest(".theme-option");
     if (!button) return;
     applyTheme(button.dataset.themeId);
-    menu.hidden = true;
-    toggle.setAttribute("aria-expanded", "false");
+    setOpen(false);
+    toggle.focus();
   });
-  toggle.addEventListener("click", () => {
-    menu.hidden = !menu.hidden;
-    toggle.setAttribute("aria-expanded", String(!menu.hidden));
-  });
+  toggle.addEventListener("click", () => setOpen(menu.hidden));
   document.addEventListener("click", (event) => {
-    if (!menu.hidden && !event.target.closest(".theme-switcher")) {
-      menu.hidden = true;
-      toggle.setAttribute("aria-expanded", "false");
+    if (!menu.hidden && !event.target.closest(".theme-switcher")) setOpen(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !menu.hidden) {
+      setOpen(false);
+      toggle.focus();
     }
   });
 }
@@ -72,12 +77,15 @@ function uvLabel(value) {
   return "Low";
 }
 
-function formatLocalTime(isoLocal) {
-  const [hourStr, minuteStr] = isoLocal.slice(11, 16).split(":");
-  const hour = Number(hourStr);
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minuteStr} ${suffix}`;
+// Open-Meteo returns wall-clock times for the forecast location (no offset), so
+// build a Date from the parts to keep those digits and let Intl handle locale.
+function formatLocalTime(isoLocal, options = { hour: "numeric", minute: "2-digit" }) {
+  const [date, time] = isoLocal.split("T");
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  return new Intl.DateTimeFormat([], options).format(
+    new Date(year, month - 1, day, hour, minute)
+  );
 }
 
 function tick() {
@@ -107,7 +115,7 @@ function renderWeather(data) {
   $("#humidity").textContent = `${current.humidity}%`;
   $("#wind").textContent = `${Math.round(current.wind)} ${data.windUnit}`;
   $("#uv-index").textContent = `${Math.round(current.uvIndex)} · ${uvLabel(current.uvIndex)}`;
-  $("#sunset").textContent = formatLocalTime(current.sunset);
+  renderSunTime(current);
   $("#forecast").innerHTML = data.days.slice(1, 6).map((day) => {
     const [, dayIcon] = condition(day.code);
     const name = new Intl.DateTimeFormat([], { weekday: "short", timeZone: "UTC" }).format(new Date(`${day.date}T12:00:00Z`));
@@ -118,6 +126,17 @@ function renderWeather(data) {
     </div>`;
   }).join("");
   renderOutlook(data.outlook);
+}
+
+// Before dawn show today's sunrise, during the day the sunset, after dusk
+// tomorrow's sunrise — so the stat is always the next thing that happens.
+function renderSunTime(current) {
+  const [label, at] =
+    current.localTime < current.sunrise ? ["Sunrise", current.sunrise]
+    : current.localTime < current.sunset ? ["Sunset", current.sunset]
+    : ["Sunrise", current.sunriseTomorrow];
+  $("#sun-label").textContent = label;
+  $("#sun-time").textContent = formatLocalTime(at);
 }
 
 function renderOutlook(outlook) {
@@ -132,7 +151,8 @@ function renderOutlook(outlook) {
   $("#outlook-summary").textContent = summary;
   $("#outlook-hours").innerHTML = outlook.hours.map((hour) => {
     const [, icon] = condition(hour.code, true);
-    return `<div class="outlook-hour"><span class="outlook-icon">${icon}</span><span>${formatLocalTime(hour.time).replace(":00 ", " ")}</span></div>`;
+    const at = formatLocalTime(hour.time, { hour: "numeric" });
+    return `<div class="outlook-hour"><span class="outlook-icon">${icon}</span><span>${at}</span></div>`;
   }).join("");
 }
 
@@ -166,8 +186,9 @@ function renderEvents(data) {
     const when = eventTime(event);
     const eventDate = dateKey(event.start);
     const day = eventDate === today ? "Today" : when.day;
-    const tag = event.link ? "a" : "div";
-    const link = event.link ? ` href="${event.link}" target="_blank" rel="noreferrer"` : "";
+    const href = safeUrl(event.link);
+    const tag = href ? "a" : "div";
+    const link = href ? ` href="${escapeHtml(href)}" target="_blank" rel="noreferrer"` : "";
     return `<${tag} class="event"${link}><div class="event-time"><strong>${day}</strong>${when.time}</div><span class="event-bar"></span><div class="event-copy"><div class="event-title">${escapeHtml(event.title)}</div>${event.location ? `<div class="event-meta">${escapeHtml(event.location)}</div>` : ""}</div></${tag}>`;
   }).join("");
   const first = data.events[0], when = eventTime(first);
@@ -178,16 +199,43 @@ function escapeHtml(value) {
   const node = document.createElement("span"); node.textContent = value; return node.innerHTML;
 }
 
+// Calendar data is user-supplied, so only let real web links become an href.
+function safeUrl(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 function showError(target, message) {
   $(target).innerHTML = `<div class="empty"><strong>Couldn’t update</strong><p>${escapeHtml(message)}</p></div>`;
 }
 
 async function refresh() {
-  const results = await Promise.allSettled([getJson("/api/weather"), getJson("/api/calendar")]);
-  if (results[0].status === "fulfilled") renderWeather(results[0].value);
-  else { $("#condition").textContent = "Weather unavailable"; $("#location").textContent = results[0].reason.message; }
-  if (results[1].status === "fulfilled") renderEvents(results[1].value);
-  else showError("#events", results[1].reason.message);
+  const [weather, calendar] = await Promise.allSettled([
+    getJson("/api/weather"),
+    getJson("/api/calendar")
+  ]);
+
+  if (weather.status === "fulfilled") {
+    renderWeather(weather.value);
+  } else {
+    $("#condition").textContent = "Weather unavailable";
+    $("#location").textContent = weather.reason.message;
+    $("#outlook").hidden = true;
+  }
+
+  // renderEvents throws when the API reports a calendar-side failure.
+  try {
+    if (calendar.status === "rejected") throw calendar.reason;
+    renderEvents(calendar.value);
+  } catch (error) {
+    showError("#events", error.message);
+  }
+
   $("#last-updated").textContent = `Updated ${new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(new Date())}`;
 }
 

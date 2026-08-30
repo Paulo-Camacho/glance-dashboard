@@ -108,9 +108,10 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   color: var(--text);
+  background: var(--bg);
   background:
-    radial-gradient(circle at 80% -10%, rgba(123, 162, 107, .13), transparent 38%),
-    linear-gradient(145deg, #121610 0%, #0c0f0c 100%);
+    radial-gradient(circle at 80% -10%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 38%),
+    var(--bg);
 }
 
 body::before {
@@ -119,8 +120,8 @@ body::before {
 }
 
 .ambient { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; }
-.ambient-one { width: 30vw; height: 30vw; top: 12%; left: -12%; background: rgba(143, 183, 102, .07); }
-.ambient-two { width: 26vw; height: 26vw; right: -8%; bottom: -8%; background: rgba(65, 130, 102, .08); }
+.ambient-one { width: 30vw; height: 30vw; top: 12%; left: -12%; background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.ambient-two { width: 26vw; height: 26vw; right: -8%; bottom: -8%; background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
 
 .dashboard {
   position: relative; z-index: 1; width: min(1500px, calc(100% - 64px));
@@ -133,7 +134,7 @@ body::before {
 .topbar { grid-area: top; display: flex; justify-content: space-between; align-items: center; min-height: 46px; }
 .brand { display: flex; gap: 13px; align-items: center; font: 700 13px/1 "Manrope", sans-serif; letter-spacing: .21em; }
 .brand-mark { width: 31px; height: 31px; padding: 7px; display: flex; align-items: end; gap: 3px; border-radius: 9px; background: var(--accent); }
-.brand-mark i { display: block; width: 4px; border-radius: 4px; background: #1a2116; }
+.brand-mark i { display: block; width: 4px; border-radius: 4px; background: var(--bg); }
 .brand-mark i:nth-child(1) { height: 8px; }.brand-mark i:nth-child(2) { height: 15px; }.brand-mark i:nth-child(3) { height: 11px; }
 .theme-switcher { position: relative; margin-left: 18px; }
 .theme-toggle { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
@@ -143,26 +144,28 @@ body::before {
 .theme-option { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--text); font: 500 13px "DM Sans", sans-serif; cursor: pointer; text-align: left; }
 .theme-option:hover, .theme-option.active { background: var(--surface); }
 .theme-swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.theme-toggle:focus-visible, .theme-option:focus-visible, .event:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .clock-wrap { display: flex; align-items: baseline; gap: 16px; color: var(--muted); }
 #clock { font: 600 24px/1 "Manrope", sans-serif; color: var(--text); letter-spacing: -.04em; }
 #date { font-size: 13px; }
 
 .card, .hero-card { border: 1px solid var(--line); background: var(--surface); box-shadow: 0 24px 70px rgba(0,0,0,.16); backdrop-filter: blur(22px); }
 .hero-card { grid-area: weather; min-height: 300px; border-radius: 34px; padding: 34px 38px; display: grid; grid-template-columns: .95fr 1.4fr; gap: 48px; overflow: hidden; position: relative; }
-.hero-card::after { content: ""; position: absolute; width: 400px; height: 400px; border-radius: 50%; right: -170px; top: -230px; background: rgba(213, 241, 139, .06); }
+.hero-card::after { content: ""; position: absolute; width: 400px; height: 400px; border-radius: 50%; right: -170px; top: -230px; background: color-mix(in srgb, var(--accent) 6%, transparent); }
 .card { border-radius: var(--radius); }
 .eyebrow-row { display: flex; align-items: center; gap: 17px; }
 .eyebrow { color: var(--accent); font: 600 11px/1 "Manrope", sans-serif; letter-spacing: .16em; text-transform: uppercase; }
 .location { color: var(--muted); font-size: 13px; }
 .weather-primary { display: flex; align-items: center; gap: 24px; margin: 30px 0 25px; }
-.weather-icon { display: grid; place-items: center; color: var(--sun); filter: drop-shadow(0 8px 18px rgba(243, 203, 121, .15)); }
+.weather-icon { display: grid; place-items: center; color: var(--sun); filter: drop-shadow(0 8px 18px color-mix(in srgb, var(--sun) 18%, transparent)); }
 .icon-large { width: 100px; font-size: 92px; line-height: 1; }
 .temperature { font: 600 clamp(88px, 9vw, 136px)/.8 "Manrope", sans-serif; letter-spacing: -.085em; }
-.condition { margin-top: 15px; color: #c6cdc0; font-size: 20px; }
-.weather-facts { display: flex; flex-wrap: wrap; gap: 12px 26px; color: var(--muted); font-size: 13px; }
+.condition { margin-top: 15px; color: color-mix(in srgb, var(--text) 78%, var(--muted)); font-size: 20px; }
+.weather-facts { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); justify-content: start; gap: 12px 28px; color: var(--muted); font-size: 13px; }
 .weather-facts strong { color: var(--text); font-weight: 600; margin-left: 3px; }
 
 .outlook { grid-column: 1 / -1; margin-top: 6px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.outlook[hidden] { display: none; }
 .outlook-summary { color: var(--text); font: 600 14px "Manrope", sans-serif; }
 .outlook-hours { display: flex; gap: 24px; overflow-x: auto; }
 .outlook-hour { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 40px; color: var(--muted); font-size: 11px; }
@@ -174,22 +177,22 @@ body::before {
 .forecast-name { color: var(--muted); font: 500 11px/1 "Manrope", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
 .forecast-icon { font-size: 30px; line-height: 1; }
 .forecast-temp { font: 600 17px/1 "Manrope", sans-serif; white-space: nowrap; }
-.forecast-temp span { color: #7d8578; margin-left: 5px; }
-.rain { color: #7eaa93; font-size: 11px; }
+.forecast-temp span { color: var(--muted); margin-left: 5px; }
+.rain { color: var(--accent-2); font-size: 11px; }
 .forecast-placeholder { width: 50%; height: 110px; margin: auto; border-radius: 10px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.04), transparent); animation: pulse 1.5s infinite; }
 
 .schedule { grid-area: schedule; min-height: 380px; padding: 30px 32px 24px; }
 .today { grid-area: today; min-height: 380px; padding: 30px 30px 24px; display: flex; flex-direction: column; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .section-heading h1, .section-heading h2 { margin: 7px 0 0; font: 600 27px/1 "Manrope", sans-serif; letter-spacing: -.04em; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #697066; box-shadow: 0 0 0 5px rgba(105,112,102,.1); }
-.status-dot.online { background: var(--accent); box-shadow: 0 0 0 5px rgba(213,241,139,.09); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 5px color-mix(in srgb, var(--muted) 12%, transparent); }
+.status-dot.online { background: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent); }
 .events { display: flex; flex-direction: column; }
 .event { display: grid; grid-template-columns: 80px 4px minmax(0, 1fr); gap: 19px; align-items: center; min-height: 65px; text-decoration: none; color: inherit; border-top: 1px solid var(--line); }
 .event-time { color: var(--muted); font-size: 12px; text-align: right; line-height: 1.4; }
 .event-time strong { display: block; color: var(--text); font: 600 13px/1.2 "Manrope", sans-serif; }
 .event-bar { width: 3px; height: 31px; border-radius: 4px; background: var(--accent-2); }
-.event:nth-child(3n+2) .event-bar { background: var(--sun); }.event:nth-child(3n) .event-bar { background: #9faadd; }
+.event:nth-child(3n+2) .event-bar { background: var(--sun); }.event:nth-child(3n) .event-bar { background: color-mix(in srgb, var(--accent) 55%, var(--accent-2)); }
 .event-copy { min-width: 0; }
 .event-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 14px/1.4 "Manrope", sans-serif; }
 .event-meta { margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
@@ -206,7 +209,7 @@ body::before {
 .next-up p { margin: 13px 0 0; font: 500 15px/1.45 "Manrope", sans-serif; }
 .next-up small { display: block; margin-top: 7px; color: var(--muted); }
 
-footer { grid-area: footer; display: flex; justify-content: space-between; padding: 2px 5px 0; color: #667061; font-size: 10px; letter-spacing: .03em; }
+footer { grid-area: footer; display: flex; justify-content: space-between; padding: 2px 5px 0; color: color-mix(in srgb, var(--muted) 72%, transparent); font-size: 10px; letter-spacing: .03em; }
 .loading-row { display: grid; grid-template-columns: 80px 1fr; gap: 20px; align-items: center; min-height: 65px; border-top: 1px solid var(--line); }
 .loading-row span, .loading-row div { height: 9px; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.08), rgba(255,255,255,.03)); animation: pulse 1.5s infinite; }
 .loading-row div { width: 55%; }
@@ -225,7 +228,8 @@ footer { grid-area: footer; display: flex; justify-content: space-between; paddi
   .hero-card { min-height: auto; }.weather-primary { margin-top: 25px; }
   .forecast { overflow-x: auto; grid-template-columns: repeat(5, minmax(72px, 1fr)); }
   .event { grid-template-columns: 58px 3px minmax(0, 1fr); gap: 13px; }
-  .event-time { text-align: left; }.weather-facts { gap: 8px 14px; }
+  .event-time { text-align: left; }
+  .weather-facts { grid-template-columns: repeat(2, minmax(0, auto)); gap: 8px 18px; }
   footer { padding-bottom: 8px; }
 }
 

@@ -173,7 +173,10 @@ def load_weather() -> dict[str, Any]:
             "isDay": bool(forecast["current"]["is_day"]),
             "cloudCover": forecast["current"]["cloud_cover"],
             "uvIndex": forecast["current"]["uv_index"],
+            "localTime": forecast["current"]["time"],
+            "sunrise": daily["sunrise"][0],
             "sunset": daily["sunset"][0],
+            "sunriseTomorrow": daily["sunrise"][1],
         },
         "outlook": build_outlook(
             hourly,

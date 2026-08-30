@@ -1,6 +1,14 @@
 # Glance
 
-A quiet, self-hosted dashboard designed to stay open on a dedicated screen. It shows current weather, a five-day forecast, and upcoming Google Calendar events. The backend keeps OAuth tokens off the browser and the frontend is deliberately framework-free, so the laptop has very little to run.
+A quiet, self-hosted dashboard designed to stay open on a dedicated screen. The backend keeps OAuth tokens off the browser and the frontend is deliberately framework-free, so the laptop has very little to run.
+
+It shows:
+
+- **Weather at a glance** — a large current temperature and sky condition, with feels-like, humidity, wind, the live UV index (with a plain-language level), and the next sunrise or sunset.
+- **Today's sky outlook** — whether the day is clearing up or clouding over, with hourly icons through sunset. Hidden once the sun is down.
+- **A five-day forecast** with highs, lows, and rain chance.
+- **Upcoming Google Calendar events** (optional, read-only).
+- **Themes** — pick from Forest, Dracula, Nord, Solarized Dark, Monokai, Gruvbox, One Dark, or Tokyo Night using the palette button in the top right. Your choice is remembered in the browser.
 
 ## Run it
 
